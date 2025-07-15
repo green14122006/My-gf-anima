@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Butterfly Heart Love</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      background: linear-gradient(to top, #2c3e50, #34495e);
+      font-family: sans-serif;
+    }
+
+    .scene {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .sun {
+      position: absolute;
+      left: 50%;
+      bottom: -20%;
+      width: 120px;
+      height: 120px;
+      background: radial-gradient(circle, #ffd700, #ff8c00);
+      border-radius: 50%;
+      transform: translateX(-50%);
+      transition: bottom 2s ease, opacity 2s ease;
+      opacity: 0.3;
+      z-index: 1;
+    }
+
+    .sun.rise {
+      bottom: 65%;
+      opacity: 1;
+    }
+
+    .photo {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 250px;
+      transform: translate(-50%, -50%) scale(0);
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(255, 105, 180, 0.7);
+      transition: transform 1s ease;
+      z-index: 3;
+    }
+
+    .photo.show {
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .floating-text {
+      position: absolute;
+      font-size: 1.8rem;
+      color: pink;
+      opacity: 0;
+      animation: floatText 4s infinite ease-in-out;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    @keyframes floatText {
+      0% { transform: translateY(0); opacity: 0; }
+      20% { opacity: 1; }
+      50% { transform: translateY(-80px); }
+      80% { opacity: 1; }
+      100% { transform: translateY(-160px); opacity: 0; }
+    }
+
+    .day {
+      background: linear-gradient(to top, #ffb6c1, #ffeaa7);
+    }
+  </style>
+</head>
+<body>
+  <div class="scene" id="scene">
+    <canvas id="canvas"></canvas>
+    <div class="sun" id="sun"></div>
+    <img src="gf.jpg" id="photo" class="photo" />
+    <div class="floating-text" style="left: 30%; top: 75%;">I love you ❤️</div>
+    <div class="floating-text" style="left: 60%; top: 70%; animation-delay: 1s;">I love you ❤️</div>
+  </div>
+
+  <script>
+    const sun = document.getElementById('sun');
+    const scene = document.getElementById('scene');
+    const photo = document.getElementById('photo');
+    const texts = document.querySelectorAll('.floating-text');
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    let isShown = false;
+    let heartParticles = [];
+    let angle = 0;
+    let animationRunning = false;
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    function drawHeartParticle(x, y) {
+      ctx.beginPath();
+      ctx.fillStyle = "rgba(255, 105, 180, 0.8)";
+      ctx.shadowColor = "#ff69b4";
+      ctx.shadowBlur = 10;
+      ctx.arc(x, y, 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function heartPath(t) {
+      const scale = 12;
+      const x = scale * 16 * Math.pow(Math.sin(t), 3);
+      const y = -scale * (13 * Math.cos(t) - 5 * Math.cos(2 * t)
+              - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+      return [x + canvas.width / 2, y + canvas.height / 2];
+    }
+
+    function animateHeart() {
+      if (!animationRunning) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (angle < Math.PI * 2) {
+        const [x, y] = heartPath(angle);
+        heartParticles.push({x, y});
+        angle += 0.05;
+      } else {
+        // Show photo and sun when heart finishes
+        photo.classList.add('show');
+        sun.classList.add('rise');
+        scene.classList.add('day');
+        texts.forEach(t => t.style.opacity = '1');
+      }
+
+      heartParticles.forEach(p => drawHeartParticle(p.x, p.y));
+      requestAnimationFrame(animateHeart);
+    }
+
+    scene.addEventListener("click", () => {
+      if (!isShown) {
+        // Show heart trail animation
+        angle = 0;
+        heartParticles = [];
+        animationRunning = true;
+        animateHeart();
+        isShown = true;
+      } else {
+        // Reset
+        animationRunning = false;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        photo.classList.remove('show');
+        sun.classList.remove('rise');
+        scene.classList.remove('day');
+        texts.forEach(t => t.style.opacity = '0');
+        isShown = false;
+      }
+    });
+  </script>
+</body>
+</html>
